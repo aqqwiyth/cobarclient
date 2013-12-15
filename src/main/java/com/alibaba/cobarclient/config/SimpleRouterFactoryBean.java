@@ -16,7 +16,7 @@ import org.springframework.util.ObjectUtils;
 
 import java.util.*;
 
-public class SimpleRouterFactoryBean implements FactoryBean<Router>, InitializingBean {
+public class SimpleRouterFactoryBean implements FactoryBean, InitializingBean {
 
     private Resource configLocation;
     private Resource[] configLocations;

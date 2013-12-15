@@ -100,7 +100,7 @@ public class MysdalSqlMapClientTemplate extends SqlMapClientTemplate implements 
         if (shards.size() == 1) {
             return CURRENT_THREAD_SQLMAP_CLIENT_TEMPLATES.get(shards.iterator().next().getId()).delete(statementName, parameterObject);
         } else {
-            List<Integer> results = execute(shards, new SqlMapClientCallback<Integer>() {
+            List<Integer> results = execute(shards, new SqlMapClientCallback() {
                 public Integer doInSqlMapClient(SqlMapExecutor executor) throws SQLException {
                     return executor.delete(statementName, parameterObject);
                 }
@@ -134,7 +134,7 @@ public class MysdalSqlMapClientTemplate extends SqlMapClientTemplate implements 
         if (shards.size() == 1) {
             return CURRENT_THREAD_SQLMAP_CLIENT_TEMPLATES.get(shards.iterator().next().getId()).insert(statementName, parameterObject);
         } else {
-            return execute(shards, new SqlMapClientCallback<Object>() {
+            return execute(shards, new SqlMapClientCallback() {
                 public Object doInSqlMapClient(SqlMapExecutor executor) throws SQLException {
                     return executor.insert(statementName, parameterObject);
                 }
@@ -154,7 +154,7 @@ public class MysdalSqlMapClientTemplate extends SqlMapClientTemplate implements 
         if (shards.size() == 1) {
             return CURRENT_THREAD_SQLMAP_CLIENT_TEMPLATES.get(shards.iterator().next().getId()).queryForList(statementName, parameterObject);
         } else {
-            return queryForListBase(shards, new SqlMapClientCallback<List>() {
+            return queryForListBase(shards, new SqlMapClientCallback() {
                 public List doInSqlMapClient(SqlMapExecutor executor) throws SQLException {
                     return executor.queryForList(statementName, parameterObject);
                 }
@@ -169,7 +169,7 @@ public class MysdalSqlMapClientTemplate extends SqlMapClientTemplate implements 
         if (shards.size() == 1) {
             return CURRENT_THREAD_SQLMAP_CLIENT_TEMPLATES.get(shards.iterator().next().getId()).queryForList(statementName, parameterObject, skipResults, maxResults);
         } else {
-            return queryForListBase(shards, new SqlMapClientCallback<List>() {
+            return queryForListBase(shards, new SqlMapClientCallback() {
                 public List doInSqlMapClient(SqlMapExecutor executor) throws SQLException {
                     return executor.queryForList(statementName, parameterObject, skipResults, maxResults);
                 }
@@ -186,7 +186,7 @@ public class MysdalSqlMapClientTemplate extends SqlMapClientTemplate implements 
     /**
      * collection and flatten the result list
      */
-    protected List<Object> queryForListBase(Set<Shard> shards, SqlMapClientCallback<List> callback) {
+    protected List<Object> queryForListBase(Set<Shard> shards, SqlMapClientCallback callback) {
         List<List> results = execute(shards, callback);
         List<Object> resultList = new ArrayList<Object>();         // FLATTEN the list, miss FP pattern here.
         for (List lst : results) {
@@ -202,7 +202,7 @@ public class MysdalSqlMapClientTemplate extends SqlMapClientTemplate implements 
         if (shards.size() == 1) {
             return CURRENT_THREAD_SQLMAP_CLIENT_TEMPLATES.get(shards.iterator().next().getId()).queryForMap(statementName, parameterObject, keyProperty);
         } else {
-            return queryForMapBase(shards, new SqlMapClientCallback<Map>() {
+            return queryForMapBase(shards, new SqlMapClientCallback() {
                 public Map doInSqlMapClient(SqlMapExecutor executor) throws SQLException {
                     return executor.queryForMap(statementName, parameterObject, keyProperty);
                 }
@@ -217,7 +217,7 @@ public class MysdalSqlMapClientTemplate extends SqlMapClientTemplate implements 
         if (shards.size() == 1) {
             return CURRENT_THREAD_SQLMAP_CLIENT_TEMPLATES.get(shards.iterator().next().getId()).queryForMap(statementName, parameterObject, keyProperty, valueProperty);
         } else {
-            return queryForMapBase(shards, new SqlMapClientCallback<Map>() {
+            return queryForMapBase(shards, new SqlMapClientCallback() {
                 public Map doInSqlMapClient(SqlMapExecutor executor) throws SQLException {
                     return executor.queryForMap(statementName, parameterObject, keyProperty, valueProperty);
                 }
@@ -226,7 +226,7 @@ public class MysdalSqlMapClientTemplate extends SqlMapClientTemplate implements 
 
     }
 
-    protected Map queryForMapBase(Set<Shard> shards, SqlMapClientCallback<Map> callback) {
+    protected Map queryForMapBase(Set<Shard> shards, SqlMapClientCallback callback) {
         List<Map> resultList = execute(shards, callback);
         Map map = new HashMap();
         for (Map m : resultList) {
@@ -247,7 +247,7 @@ public class MysdalSqlMapClientTemplate extends SqlMapClientTemplate implements 
         if (shards.size() == 1) {
             return CURRENT_THREAD_SQLMAP_CLIENT_TEMPLATES.get(shards.iterator().next().getId()).queryForObject(statementName, parameterObject);
         } else {
-            return execute(shards, new SqlMapClientCallback<Object>() {
+            return execute(shards, new SqlMapClientCallback() {
                 public Object doInSqlMapClient(SqlMapExecutor executor) throws SQLException {
                     return executor.queryForObject(statementName, parameterObject);
                 }
@@ -262,7 +262,7 @@ public class MysdalSqlMapClientTemplate extends SqlMapClientTemplate implements 
         if (shards.size() == 1) {
             return CURRENT_THREAD_SQLMAP_CLIENT_TEMPLATES.get(shards.iterator().next().getId()).queryForObject(statementName, parameterObject, resultObject);
         } else {
-            return execute(shards, new SqlMapClientCallback<Object>() {
+            return execute(shards, new SqlMapClientCallback() {
                 public Object doInSqlMapClient(SqlMapExecutor executor) throws SQLException {
                     return executor.queryForObject(statementName, parameterObject, resultObject);
                 }
@@ -282,7 +282,7 @@ public class MysdalSqlMapClientTemplate extends SqlMapClientTemplate implements 
         if (shards.size() == 1) {
             CURRENT_THREAD_SQLMAP_CLIENT_TEMPLATES.get(shards.iterator().next().getId()).queryWithRowHandler(statementName, parameterObject, rowHandler);
         } else {
-            execute(shards, new SqlMapClientCallback<Object>() {
+            execute(shards, new SqlMapClientCallback() {
                 public Object doInSqlMapClient(SqlMapExecutor executor) throws SQLException {
                     executor.queryWithRowHandler(statementName, parameterObject, rowHandler);
                     return null;
@@ -298,7 +298,7 @@ public class MysdalSqlMapClientTemplate extends SqlMapClientTemplate implements 
         if (shards.size() == 1) {
             return CURRENT_THREAD_SQLMAP_CLIENT_TEMPLATES.get(shards.iterator().next().getId()).update(statementName, parameterObject);
         } else {
-            List<Integer> resultList = execute(shards, new SqlMapClientCallback<Integer>() {
+            List<Integer> resultList = execute(shards, new SqlMapClientCallback() {
                 public Integer doInSqlMapClient(SqlMapExecutor executor) throws SQLException {
                     return executor.update(statementName, parameterObject);
                 }
@@ -325,15 +325,15 @@ public class MysdalSqlMapClientTemplate extends SqlMapClientTemplate implements 
         return this.update(statementName, null);
     }
 
-    protected <T> List<T> execute(Set<Shard> shards, final SqlMapClientCallback<T> callback) {
+    protected  List execute(Set<Shard> shards, final SqlMapClientCallback callback) {
         MultipleCauseException exceptions = new MultipleCauseException();
-        Map<String, ResourceBundle<T>> executionContext = new HashMap<String, ResourceBundle<T>>();
+        Map<String, ResourceBundle> executionContext = new HashMap<String, ResourceBundle>();
 
         for (Shard shard : shards) {
             try {
                 final Connection connection = DataSourceUtils.getConnection(shard.getDataSource());
-                Future<T> future = executor.submit(new Callable<T>() {
-                    public T call() throws Exception {
+                Future future = executor.submit(new Callable() {
+                    public Object call() throws Exception {
                         SqlMapSession session = getSqlMapClient().openSession();
                         try {
                             session.setUserConnection(connection);
@@ -347,16 +347,16 @@ public class MysdalSqlMapClientTemplate extends SqlMapClientTemplate implements 
                         }
                     }
                 });
-                executionContext.put(shard.getId(), new ResourceBundle<T>(connection, shard.getDataSource(), future));
+                executionContext.put(shard.getId(), new ResourceBundle(connection, shard.getDataSource(), future));
             } catch (Exception ex) {
                 exceptions.add(ex);
             }
         }
 
-        List<T> resultList = new ArrayList<T>();
+        List resultList = new ArrayList();
 
-        for (Map.Entry<String, ResourceBundle<T>> entry : executionContext.entrySet()) {
-            ResourceBundle<T> bundle = entry.getValue();
+        for (Map.Entry<String, ResourceBundle> entry : executionContext.entrySet()) {
+            ResourceBundle bundle = entry.getValue();
             try {
                 resultList.add(bundle.getFuture().get(timeout, TimeUnit.MILLISECONDS));
             } catch (InterruptedException e) {
@@ -410,7 +410,7 @@ public class MysdalSqlMapClientTemplate extends SqlMapClientTemplate implements 
                 public Integer call() {
                     int row = 0;
                     try {
-                        row = getSqlMapClientTemplate(entry.getKey().getId()).<Integer>execute(new SqlMapClientCallback() {
+                        row = (Integer)getSqlMapClientTemplate(entry.getKey().getId()).execute(new SqlMapClientCallback() {
                             public Integer doInSqlMapClient(SqlMapExecutor executor) throws SQLException {
                                 executor.startBatch();
                                 for (Object item : entry.getValue()) {
@@ -470,7 +470,7 @@ public class MysdalSqlMapClientTemplate extends SqlMapClientTemplate implements 
                 public Integer call() {
                     int row = 0;
                     try {
-                        row = getSqlMapClientTemplate(entry.getKey().getId()).<Integer>execute(new SqlMapClientCallback() {
+                        row = (Integer)getSqlMapClientTemplate(entry.getKey().getId()).execute(new SqlMapClientCallback() {
                             public Integer doInSqlMapClient(SqlMapExecutor executor) throws SQLException {
                                 executor.startBatch();
                                 for (Object item : entry.getValue()) {
@@ -530,7 +530,7 @@ public class MysdalSqlMapClientTemplate extends SqlMapClientTemplate implements 
                 public Integer call() {
                     int row = 0;
                     try {
-                        row = getSqlMapClientTemplate(entry.getKey().getId()).<Integer>execute(new SqlMapClientCallback() {
+                        row = (Integer)getSqlMapClientTemplate(entry.getKey().getId()).execute(new SqlMapClientCallback() {
                             public Integer doInSqlMapClient(SqlMapExecutor executor) throws SQLException {
                                 executor.startBatch();
                                 for (Object item : entry.getValue()) {
