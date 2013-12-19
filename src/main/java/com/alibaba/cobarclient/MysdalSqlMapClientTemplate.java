@@ -562,8 +562,7 @@ public class MysdalSqlMapClientTemplate extends SqlMapClientTemplate implements 
     }
 
     /**
-     * TODO 改成并行归类
-     *
+     * 批量处理的时候把同一个shard的放到一个集合里批量操作
      * @param statementName
      * @param entities
      * @return

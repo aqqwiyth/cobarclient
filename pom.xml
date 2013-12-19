@@ -5,10 +5,10 @@
         <artifactId>oss-parent</artifactId>
         <version>7</version>
     </parent>
-	<groupId>com.alibaba.cobar</groupId>
+	<groupId>com.raycloud.data.cobar</groupId>
 	<artifactId>cobar-client</artifactId>
 	<packaging>jar</packaging>
-	<version>2.2.1-SNAPSHOT</version>
+	<version>1.0.0-SNAPSHOT</version>
 
 	<name>cobar-client</name>
     <description>CobarClient(CC) is a lightweight distributed data access layer which is an extension to and wrapper of iBatis(now, MyBatis) in Spring framework.</description>
@@ -190,4 +190,16 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+    <distributionManagement>
+        <repository>
+            <id>nexus-releases</id>
+            <name>Local Nexus Repository</name>
+            <url>http://maven.superboss.cc:8081/nexus/content/repositories/releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>nexus-snapshots</id>
+            <name>Local Nexus Repository</name>
+            <url>http://maven.superboss.cc:8081/nexus/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project>
