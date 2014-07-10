@@ -4,6 +4,10 @@ import com.alibaba.cobarclient.route.Router;
 import com.ibatis.sqlmap.client.SqlMapExecutor;
 import com.ibatis.sqlmap.client.SqlMapSession;
 import com.ibatis.sqlmap.client.event.RowHandler;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.*;
+import java.util.concurrent.*;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.DataAccessException;
@@ -14,11 +18,6 @@ import org.springframework.orm.ibatis.SqlMapClientCallback;
 import org.springframework.orm.ibatis.SqlMapClientTemplate;
 import org.springframework.util.CollectionUtils;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.*;
-import java.util.concurrent.*;
-
 /**
  * Created with IntelliJ IDEA.
  */
@@ -28,7 +27,7 @@ public class MysdalSqlMapClientTemplate extends SqlMapClientTemplate implements 
      * way, that's, submit them to thread pool and execute in parallel. In such scenarios, just reuse
      * SqlMapClientTemplate's easy API and get it done smoothly.
      */
-    protected Map<String, SqlMapClientTemplate> CURRENT_THREAD_SQLMAP_CLIENT_TEMPLATES = new HashMap<String, SqlMapClientTemplate>();
+    public Map<String, SqlMapClientTemplate> CURRENT_THREAD_SQLMAP_CLIENT_TEMPLATES = new ConcurrentHashMap<String, SqlMapClientTemplate>();
     /**
      * we need target set of the shard to set the boundary of distributed data access and negotiate some default
      * settings for MysdalSqlMapClientTemplate, say, default pool size to use.
@@ -52,7 +51,7 @@ public class MysdalSqlMapClientTemplate extends SqlMapClientTemplate implements 
 
     @Override
     public void afterPropertiesSet() {
-        super.afterPropertiesSet();
+        if (getSqlMapClient() == null) throw new IllegalArgumentException("Property 'sqlMapClient' is required");
         if (shards == null || shards.isEmpty()) throw new IllegalArgumentException("'shards' argument is required.");
         if (router == null) throw new IllegalArgumentException("'router' argument is required");
         if (executor == null) {
@@ -325,7 +324,7 @@ public class MysdalSqlMapClientTemplate extends SqlMapClientTemplate implements 
         return this.update(statementName, null);
     }
 
-    protected  List execute(Set<Shard> shards, final SqlMapClientCallback callback) {
+    protected List execute(Set<Shard> shards, final SqlMapClientCallback callback) {
         MultipleCauseException exceptions = new MultipleCauseException();
         Map<String, ResourceBundle> executionContext = new HashMap<String, ResourceBundle>();
 
@@ -410,7 +409,7 @@ public class MysdalSqlMapClientTemplate extends SqlMapClientTemplate implements 
                 public Integer call() {
                     int row = 0;
                     try {
-                        row = (Integer)getSqlMapClientTemplate(entry.getKey().getId()).execute(new SqlMapClientCallback() {
+                        row = (Integer) getSqlMapClientTemplate(entry.getKey().getId()).execute(new SqlMapClientCallback() {
                             public Integer doInSqlMapClient(SqlMapExecutor executor) throws SQLException {
                                 executor.startBatch();
                                 for (Object item : entry.getValue()) {
@@ -470,7 +469,7 @@ public class MysdalSqlMapClientTemplate extends SqlMapClientTemplate implements 
                 public Integer call() {
                     int row = 0;
                     try {
-                        row = (Integer)getSqlMapClientTemplate(entry.getKey().getId()).execute(new SqlMapClientCallback() {
+                        row = (Integer) getSqlMapClientTemplate(entry.getKey().getId()).execute(new SqlMapClientCallback() {
                             public Integer doInSqlMapClient(SqlMapExecutor executor) throws SQLException {
                                 executor.startBatch();
                                 for (Object item : entry.getValue()) {
@@ -530,7 +529,7 @@ public class MysdalSqlMapClientTemplate extends SqlMapClientTemplate implements 
                 public Integer call() {
                     int row = 0;
                     try {
-                        row = (Integer)getSqlMapClientTemplate(entry.getKey().getId()).execute(new SqlMapClientCallback() {
+                        row = (Integer) getSqlMapClientTemplate(entry.getKey().getId()).execute(new SqlMapClientCallback() {
                             public Integer doInSqlMapClient(SqlMapExecutor executor) throws SQLException {
                                 executor.startBatch();
                                 for (Object item : entry.getValue()) {
@@ -563,6 +562,7 @@ public class MysdalSqlMapClientTemplate extends SqlMapClientTemplate implements 
 
     /**
      * 批量处理的时候把同一个shard的放到一个集合里批量操作
+     *
      * @param statementName
      * @param entities
      * @return
@@ -580,6 +580,7 @@ public class MysdalSqlMapClientTemplate extends SqlMapClientTemplate implements 
                 shardEntities.add(entity);
             }
         }
+        if (shardEntityMap.size() == 0) throw new RuntimeException("没有找到对应的路由信息");
         return shardEntityMap;
     }
 
