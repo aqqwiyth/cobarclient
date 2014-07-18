@@ -1,4 +1,4 @@
-package com.alibaba.cobarclient.dynamic;
+package com.raycloud.common.dynamic;
 
 import com.alibaba.cobarclient.Shard;
 import com.alibaba.cobarclient.route.Route;
