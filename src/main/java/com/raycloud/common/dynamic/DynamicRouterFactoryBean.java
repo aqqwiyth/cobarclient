@@ -21,6 +21,7 @@ public class DynamicRouterFactoryBean implements FactoryBean, InitializingBean {
     private Set<Shard> shards;
 
     public void afterPropertiesSet() throws Exception {
+        if (shards == null) throw new Exception("shards is null");
         router = new DynamicRouter(DynamicRouterUtil.buildRoutes(shards));
     }
 
