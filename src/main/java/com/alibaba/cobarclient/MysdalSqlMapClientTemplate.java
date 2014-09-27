@@ -411,11 +411,33 @@ public class MysdalSqlMapClientTemplate extends SqlMapClientTemplate implements 
                     try {
                         row = (Integer) getSqlMapClientTemplate(entry.getKey().getId()).execute(new SqlMapClientCallback() {
                             public Integer doInSqlMapClient(SqlMapExecutor executor) throws SQLException {
-                                executor.startBatch();
-                                for (Object item : entry.getValue()) {
-                                    executor.insert(statementName, item);
+                                Boolean autoCommit=null;
+                                if (executor instanceof SqlMapSession) {
+                                    SqlMapSession session = (SqlMapSession) executor;
+                                    autoCommit = session.getCurrentConnection().getAutoCommit();
+                                    session.getCurrentConnection().setAutoCommit(false);
                                 }
-                                return executor.executeBatch();
+                                executor.startBatch();
+                                int rows = 0;
+                                int batchSize = 0;
+                                for (Object item : entry.getValue()) {
+                                    batchSize++;
+                                    executor.insert(statementName, item);
+                                    if (batchSize == 100) {
+                                        rows += executor.executeBatch();
+                                    }
+                                }
+
+                                rows += executor.executeBatch();
+
+                                if (executor instanceof SqlMapSession) {
+                                    SqlMapSession session = (SqlMapSession) executor;
+                                    session.getCurrentConnection().commit();
+                                    if (null != autoCommit) {
+                                        session.getCurrentConnection().setAutoCommit(autoCommit);
+                                    }
+                                }
+                                return rows;
                             }
                         });
                     } catch (Throwable e) {
@@ -471,11 +493,33 @@ public class MysdalSqlMapClientTemplate extends SqlMapClientTemplate implements 
                     try {
                         row = (Integer) getSqlMapClientTemplate(entry.getKey().getId()).execute(new SqlMapClientCallback() {
                             public Integer doInSqlMapClient(SqlMapExecutor executor) throws SQLException {
-                                executor.startBatch();
-                                for (Object item : entry.getValue()) {
-                                    executor.delete(statementName, item);
+                                Boolean autoCommit=null;
+                                if (executor instanceof SqlMapSession) {
+                                    SqlMapSession session = (SqlMapSession) executor;
+                                    autoCommit=session.getCurrentConnection().getAutoCommit();
+                                    session.getCurrentConnection().setAutoCommit(false);
                                 }
-                                return executor.executeBatch();
+                                executor.startBatch();
+                                int rows = 0;
+                                int batchSize = 0;
+                                for (Object item : entry.getValue()) {
+                                    batchSize++;
+                                    executor.delete(statementName, item);
+                                    if (batchSize == 100) {
+                                        rows += executor.executeBatch();
+                                    }
+                                }
+
+                                rows += executor.executeBatch();
+
+                                if (executor instanceof SqlMapSession) {
+                                    SqlMapSession session = (SqlMapSession) executor;
+                                    session.getCurrentConnection().commit();
+                                    if(autoCommit != null){
+                                        session.getCurrentConnection().setAutoCommit(autoCommit);
+                                    }
+                                }
+                                return rows;
                             }
                         });
                     } catch (Throwable e) {
@@ -513,10 +557,6 @@ public class MysdalSqlMapClientTemplate extends SqlMapClientTemplate implements 
 
     /**
      * 批量插入
-     *
-     * @param statementName
-     * @param entity
-     * @return
      */
     private List<Integer> batchUpdate(final String statementName, Map<Shard, List<?>> entity) {
         if (CollectionUtils.isEmpty(entity))
@@ -531,11 +571,33 @@ public class MysdalSqlMapClientTemplate extends SqlMapClientTemplate implements 
                     try {
                         row = (Integer) getSqlMapClientTemplate(entry.getKey().getId()).execute(new SqlMapClientCallback() {
                             public Integer doInSqlMapClient(SqlMapExecutor executor) throws SQLException {
-                                executor.startBatch();
-                                for (Object item : entry.getValue()) {
-                                    executor.update(statementName, item);
+                                Boolean autoCommit=null;
+                                if (executor instanceof SqlMapSession) {
+                                    SqlMapSession session = (SqlMapSession) executor;
+                                    autoCommit=session.getCurrentConnection().getAutoCommit();
+                                    session.getCurrentConnection().setAutoCommit(false);
                                 }
-                                return executor.executeBatch();
+                                executor.startBatch();
+                                int rows = 0;
+                                int batchSize = 0;
+                                for (Object item : entry.getValue()) {
+                                    batchSize++;
+                                    executor.update(statementName, item);
+                                    if (batchSize == 100) {
+                                        rows += executor.executeBatch();
+                                    }
+                                }
+
+                                rows += executor.executeBatch();
+
+                                if (executor instanceof SqlMapSession) {
+                                    SqlMapSession session = (SqlMapSession) executor;
+                                    session.getCurrentConnection().commit();
+                                    if(null!=autoCommit){
+                                        session.getCurrentConnection().setAutoCommit(autoCommit);
+                                    }
+                                }
+                                return rows;
                             }
                         });
                     } catch (Throwable e) {
