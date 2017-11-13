@@ -33,8 +33,26 @@ public class BestEffortMultiDataSourceTransactionManager extends AbstractPlatfor
     @Override
     protected void doBegin(Object o, TransactionDefinition transactionDefinition) throws TransactionException {
         List<TransactionStatus> statusList = (List<TransactionStatus>) o;
-        for (AbstractPlatformTransactionManager transactionManager : transactionManagers) {
-            statusList.add(transactionManager.getTransaction(transactionDefinition));
+        try {
+            for (AbstractPlatformTransactionManager transactionManager : transactionManagers) {
+                statusList.add(transactionManager.getTransaction(transactionDefinition));
+            }
+        } catch (Throwable e) {
+            logger.error("存在数据库开启事务失败,可能是数据库闪断或者无法连接,强制回滚所有事务:" + e.getMessage(), e);
+            for (int i = 0; i < statusList.size(); i++) {
+                AbstractPlatformTransactionManager transactionManager = transactionManagers.get(i);
+                TransactionStatus status = statusList.get(i);
+                try {
+                    transactionManager.rollback(status);
+                } catch (TransactionException ex) {
+                    ;
+                }
+            }
+            if (e instanceof TransactionException) {
+                throw (TransactionException) e;
+            } else {
+                throw new TransactionSystemException("存在数据库开启事务失败,强制回滚" + e.getMessage(), e);
+            }
         }
     }
 
@@ -52,8 +70,9 @@ public class BestEffortMultiDataSourceTransactionManager extends AbstractPlatfor
                 ex.add(e);
             }
         }
-        if (!ex.getCauses().isEmpty())
+        if (!ex.getCauses().isEmpty()) {
             throw new HeuristicCompletionException(HeuristicCompletionException.STATE_UNKNOWN, ex);
+        }
 
     }
 
@@ -70,8 +89,9 @@ public class BestEffortMultiDataSourceTransactionManager extends AbstractPlatfor
                 ex.add(e);
             }
         }
-        if (!ex.getCauses().isEmpty())
+        if (!ex.getCauses().isEmpty()) {
             throw new UnexpectedRollbackException("one or more error on rolling back the transaction", ex);
+        }
     }
 
     public Set<Shard> getShards() {
@@ -83,7 +103,9 @@ public class BestEffortMultiDataSourceTransactionManager extends AbstractPlatfor
     }
 
     public void afterPropertiesSet() throws Exception {
-        if (shards == null || shards.isEmpty()) throw new IllegalArgumentException("'shards' is required.");
+        if (shards == null || shards.isEmpty()) {
+            throw new IllegalArgumentException("'shards' is required.");
+        }
         /**防止出现并发问题把ArrayList修改为CopyOnWriteArrayList 观察一下并发问题**/
         transactionManagers = new CopyOnWriteArrayList<AbstractPlatformTransactionManager>();
         for (Shard shard : shards) {
@@ -97,6 +119,7 @@ public class BestEffortMultiDataSourceTransactionManager extends AbstractPlatfor
     /**
      * //TODO
      * 增加一个分片
+     *
      * @param shard
      */
     public void add(Shard shard) {
@@ -108,6 +131,7 @@ public class BestEffortMultiDataSourceTransactionManager extends AbstractPlatfor
 
     /**
      * 增加一个分片
+     *
      * @param shard
      */
     public void remove(Shard shard) {
